@@ -3,10 +3,20 @@
     android:layout_width="fill_parent"
     android:layout_height="fill_parent">
 
-    <Button
+    <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
+        android:text="@string/nom_application"
+        android:layout_centerHorizontal="true"/>
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="70dp"
+        android:text="@string/all"
+        android:layout_toLeftOf="@+id/idboutonajouter"/>
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="65dp"
+        android:layout_alignParentRight="true"
         android:text="@string/boutonajouter"
         android:id="@+id/idboutonajouter" />
 
@@ -18,7 +28,6 @@
         android:layout_width="match_parent"
         android:layout_height="550dp"
         android:layout_alignParentBottom="true"
-
         tools:context="com.easyspaceproject.MapsActivity" />
 
 

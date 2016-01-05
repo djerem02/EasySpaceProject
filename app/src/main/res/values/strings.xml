@@ -2,5 +2,10 @@
     <string name="app_name">EasySpaceProject</string>
     <string name="title_activity_maps">Map</string>
 
+    <string name="nom_application">EasySpace</string>
     <string name="boutonajouter">Ajouter</string>
+
+    <string name="all">€</string>
+    <string name="non_payante">Non payantes</string>
+
 </resources>
