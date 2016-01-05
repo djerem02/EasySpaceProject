@@ -13,6 +13,8 @@ import com.google.android.gms.maps.model.MarkerOptions;
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
     private GoogleMap mMap;
+    static final LatLng INSSET = new LatLng(49.8495161, 3.2874817);
+    static final LatLng CAMPUS = new LatLng(49.8374935, 3.3000117);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -22,6 +24,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+
+
     }
 
 
@@ -37,10 +41,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
+        //Zoom sur ...
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(CAMPUS,4));
+        mMap.animateCamera(CameraUpdateFactory.zoomTo(13),3000,null);
 
-        // Add a marker in France and move the camera
-        LatLng france = new LatLng(46.2157467,2.2088257);
-        mMap.addMarker(new MarkerOptions().position(france).title("Marqueur en France"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(france));
+        // Add a marker in France
+        //LatLng france = new LatLng(46.2157467,2.2088257);
+        //mMap.addMarker(new MarkerOptions().position(france).title("Marqueur en France"));
     }
 }
