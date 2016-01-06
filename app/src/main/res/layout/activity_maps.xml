@@ -8,17 +8,6 @@
         android:layout_height="wrap_content"
         android:text="@string/nom_application"
         android:layout_centerHorizontal="true"/>
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="70dp"
-        android:text="@string/all"
-        android:layout_toLeftOf="@+id/idboutonajouter"/>
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="65dp"
-        android:layout_alignParentRight="true"
-        android:text="@string/boutonajouter"
-        android:id="@+id/idboutonajouter" />
 
     <fragment xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:map="http://schemas.android.com/apk/res-auto"
@@ -30,6 +19,43 @@
         android:layout_alignParentBottom="true"
         tools:context="com.easyspaceproject.MapsActivity" />
 
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <EditText
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/idvaleurlongitude"
+            android:text="0.0"
+            android:editable="false"
+            android:focusable="false"
+            android:textSize="13dp"/>
+
+        <EditText
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/idvaleurlatitude"
+            android:text="0.0"
+            android:editable="false"
+            android:focusable="false"
+            android:textSize="13dp"/>
+
+    </LinearLayout>
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="70dp"
+        android:text="@string/all"
+        android:layout_toLeftOf="@+id/idboutonajouter"/>
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="65dp"
+        android:layout_alignParentRight="true"
+        android:text="@string/boutonajouter"
+        android:id="@+id/idboutonajouter" />
 
 
 </RelativeLayout>

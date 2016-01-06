@@ -5,6 +5,13 @@
     <string name="nom_application">EasySpace</string>
     <string name="boutonajouter">Ajouter</string>
 
+
+
+    <string name="source_active">La source %s est maintenant activée.</string>
+    <string name="source_desactive">La source  %s is maintenant désactivée.</string>
+    <string name="source_statut">La source %1$s possède un nouveau statut %2$s.</string>
+    <string name="nouvelle_position">Nouvelle position : Latitude = %1$s, Longitude = %2$s avec une précision de %4$s mètres </string>
+
     <string name="all">€</string>
     <string name="non_payante">Non payantes</string>
 
