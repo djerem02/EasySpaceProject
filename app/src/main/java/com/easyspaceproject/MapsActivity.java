@@ -207,13 +207,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
     }
 
-
-    /*public void onLocationChanged(final Location location){
-
-
-
-    }
-
     */
     /*Quand la position de l'utilisateur change */
     @Override
@@ -222,23 +215,20 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         longitude = location.getLongitude();
         accuracy = location.getAccuracy();
 
-        //String myLocation = "Latitude = " + location.getLatitude() + " Longitude = " + location.getLongitude();
+        String myLocation = "Latitude = " + latitude + "\nLongitude = " + longitude;
+        Toast.makeText(this,myLocation,Toast.LENGTH_LONG).show();
         /*String msg = String.format(
                 getResources().getString(R.string.nouvelle_position), latitude,
                 longitude, accuracy);
         Toast.makeText(this, msg, Toast.LENGTH_LONG).show();*/
 
-        /*final StringBuilder msg = new StringBuilder("Lat:");
-        msg.append(location.getLatitude());
-        msg.append("; Lng : ");
-        msg.append(location.getLongitude());
-        Toast.makeText(msg.toString(),LENGTH_SHORT).show();*/
-
-
-
         latitudeField.setText(String.valueOf(latitude));
         longitudeField.setText(String.valueOf(longitude));
 
+        final LatLng position = new LatLng(latitude,longitude);
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(position, 14));
+        //mMap.animateCamera(CameraUpdateFactory.zoomTo(14), 3000, null);
+        maPosition.setPosition(position);
 
     }
 
