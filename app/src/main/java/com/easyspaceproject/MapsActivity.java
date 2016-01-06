@@ -207,50 +207,39 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
     }
 
-    /*Quand la position de l'utilisateur change */
-    /*public void onLocationChanged(final Location location){
-        final StringBuilder msg = new StringBuilder("Lat:");
-        msg.append(location.getLatitude());
-        msg.append("; Lng : ");
-        msg.append(location.getLongitude());
-        //Toast.makeText(msg.toString(),LENGTH_SHORT).show();
 
-        final LatLng latLng = new LatLng(location.getLatitude(),location.getLongitude());
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng,15));
-        maPosition.setPosition(latLng);
+    /*public void onLocationChanged(final Location location){
+
+
+
     }
 
-
+    */
+    /*Quand la position de l'utilisateur change */
+    @Override
     public void onLocationChanged(Location location) {
         latitude = location.getLatitude();
         longitude = location.getLongitude();
         accuracy = location.getAccuracy();
 
-        String msg = String.format(
+        //String myLocation = "Latitude = " + location.getLatitude() + " Longitude = " + location.getLongitude();
+        /*String msg = String.format(
                 getResources().getString(R.string.nouvelle_position), latitude,
                 longitude, accuracy);
-        Toast.makeText(this, msg, Toast.LENGTH_LONG).show();
+        Toast.makeText(this, msg, Toast.LENGTH_LONG).show();*/
+
+        /*final StringBuilder msg = new StringBuilder("Lat:");
+        msg.append(location.getLatitude());
+        msg.append("; Lng : ");
+        msg.append(location.getLongitude());
+        Toast.makeText(msg.toString(),LENGTH_SHORT).show();*/
+
+
 
         latitudeField.setText(String.valueOf(latitude));
         longitudeField.setText(String.valueOf(longitude));
 
-        /*latitudeField = (TextView) findViewById(R.id.idvaleurlatitude);
-        latitudeField.setText(String.valueOf(location.getLatitude()));
-        longitudeField= (TextView) findViewById(R.id.idvaleurlongitude);
-        longitudeField.setText(String.valueOf(location.getLongitude()));
-    }*/
-    @Override
-    public void onLocationChanged(Location location) {
-        double latitude = location.getLatitude();
-        double longitude = location.getLongitude();
 
-        String myLocation = "Latitude = " + location.getLatitude() + " Longitude = " + location.getLongitude();
-
-        //I make a log to see the results
-        Log.e("MY CURRENT LOCATION", myLocation);
-
-        latitudeField.setText(String.valueOf(latitude));
-        longitudeField.setText(String.valueOf(longitude));
     }
 
     @Override
