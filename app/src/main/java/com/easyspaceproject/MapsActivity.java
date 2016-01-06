@@ -27,23 +27,29 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.vision.barcode.Barcode;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback,LocationListener{
 
     private GoogleMap mMap;
-    static final LatLng INSSET = new LatLng(49.8495161, 3.2874817);
-    static final LatLng CAMPUS = new LatLng(49.8374935, 3.3000117);
+
 
     private LocationManager locationManager;
     private Location location;
     private String source;
     private Marker maPosition;
+
     private double latitude;
     private double longitude;
     private float accuracy;
 
     private TextView latitudeField;
     private TextView longitudeField;
+
+
+    static final LatLng INSSET = new LatLng(49.8495161, 3.2874817);
+    static final LatLng CAMPUS = new LatLng(49.8374935, 3.3000117);
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,23 +60,22 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-        //get Your Current Location
         LocationManager locationManager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
 
-        //MonLocationListener locationListener = new MonLocationListener();
+        //POUR CLASSE
+        // MonLocationListener locationListener = new MonLocationListener();
 
+        //LES SOURCES
         locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
+        //locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,0,0,this);
 
         latitudeField = (TextView) findViewById(R.id.idvaleurlatitude);
         longitudeField = (TextView) findViewById(R.id.idvaleurlongitude);
     /*
-        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        //
 
 
         Criteria criteria = new Criteria();
         source = locationManager.getBestProvider(criteria, false);
-        onResume();
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             Location location = locationManager.getLastKnownLocation(source);
 
@@ -96,7 +101,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 
 
-        //*/
+        */
 
 
     }
@@ -118,7 +123,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
         //mMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE); //Type Satellite (trop energivore)
-        mMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
+        //mMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
         //Zoom sur ...
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(CAMPUS, 4));
         mMap.animateCamera(CameraUpdateFactory.zoomTo(15), 3000, null); //13 normal 15 Hybrid
@@ -126,7 +131,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         //Marqueurs
         final Marker insset = mMap.addMarker(new MarkerOptions().position(INSSET).title("Aurevoir le centre ville !"));
         final Marker campus = mMap.addMarker(new MarkerOptions().position(CAMPUS).title("Notre nouveau campus !"));
-        maPosition = mMap.addMarker(new MarkerOptions().title("Vous êtes ici !").position(new LatLng(0, 0)));
+
+        LatLng position = new LatLng(latitude,longitude);
+        maPosition = mMap.addMarker(new MarkerOptions().title("Vous êtes ici !").position(position));
+
+        /*mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(position, 14));
+        mMap.animateCamera(CameraUpdateFactory.zoomTo(14), 3000, null);
+        maPosition.setPosition(position);*/
     }
 
 
@@ -157,39 +168,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     }
 
+    */
+
+    /*Quand le statut de la source change*/
     @Override
-    protected void onPause() {
-        super.onPause();
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            locationManager.removeUpdates((LocationListener) this);
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            return;
-        }
-
-
-
-
-    }
-
-    /*Quand une source est activée
-    public void onProviderEnabled(String source) {
-        String msg = String.format(getResources().getString(R.string.source_active), source);
-        Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
-    }
-
-    /*Quand une source est desactivée
-    public void onProviderDisabled(String source) {
-        String msg = String.format(getResources().getString(R.string.source_desactive), source);
-        Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
-    }
-
-    /*Quand le statut de la source change
     public void onStatusChanged(String source, int status, Bundle extras) {
         String newStatus = "";
         switch (status) {
@@ -207,7 +189,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
     }
 
-    */
     /*Quand la position de l'utilisateur change */
     @Override
     public void onLocationChanged(Location location) {
@@ -215,37 +196,51 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         longitude = location.getLongitude();
         accuracy = location.getAccuracy();
 
-        String myLocation = "Latitude = " + latitude + "\nLongitude = " + longitude;
+        String myLocation = "Latitude : " + latitude + "\nLongitude : " + longitude;
         Toast.makeText(this,myLocation,Toast.LENGTH_LONG).show();
-        /*String msg = String.format(
+
+        /*ERROR
+        String msg = String.format(
                 getResources().getString(R.string.nouvelle_position), latitude,
                 longitude, accuracy);
         Toast.makeText(this, msg, Toast.LENGTH_LONG).show();*/
 
-        latitudeField.setText(String.valueOf(latitude));
-        longitudeField.setText(String.valueOf(longitude));
+        latitudeField.setText(String.valueOf("Lat: " + latitude));
+        longitudeField.setText(String.valueOf("Long: " + longitude));
 
-        final LatLng position = new LatLng(latitude,longitude);
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(position, 14));
-        //mMap.animateCamera(CameraUpdateFactory.zoomTo(14), 3000, null);
-        maPosition.setPosition(position);
+    }
 
+
+    /*Quand une source est activée*/
+    @Override
+    public void onProviderEnabled(String source) {
+        String msg = String.format(getResources().getString(R.string.source_active), source);
+        Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
+    }
+
+    /*Quand une source est desactivée*/
+    @Override
+    public void onProviderDisabled(String source) {
+        String msg = String.format(getResources().getString(R.string.source_desactive), source);
+        Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
     }
 
     @Override
-    public void onStatusChanged(String provider, int status, Bundle extras) {
+    protected void onPause() {
+        super.onPause();
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            locationManager.removeUpdates((LocationListener) this);
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
 
     }
-
-    @Override
-    public void onProviderEnabled(String provider) {
-
-    }
-
-    @Override
-    public void onProviderDisabled(String provider) {
-
-    }
-
 
 }
+
