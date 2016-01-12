@@ -2,6 +2,8 @@ package com.easyspaceproject;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
@@ -17,11 +19,13 @@ import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -42,11 +46,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private GoogleMap mMap;
     static final LatLng INSSET = new LatLng(49.8495161, 3.2874817);
     static final LatLng CAMPUS = new LatLng(49.8374935, 3.3000117);
+    static final LatLng FRANCE = new LatLng(46.2157467,2.2088257);
 
     private LocationManager locationManager;
     private Location location;
     private String source;
-    private Marker maPosition;
 
     private double latitude;
     private double longitude;
@@ -54,6 +58,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private TextView latitudeField;
     private TextView longitudeField;
+    private TextView rechercheField;
+
+    //private TextView maPosition;
     private Button ajouterBouton;
     private Button tarifBouton;
 
@@ -68,10 +75,19 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-        // BDD
+          /* Loading
+        ProgressDialog progress = new ProgressDialog(this);
+        progress.setTitle("Chargement...");
+        progress.setMessage("Veuillez patienter, chargement en cours...");
+        progress.show();
+        */
 
+
+        //Création de la bdd
         SpacesBDD spaceBdd = new SpacesBDD(this);
-        Space space = new Space("Gratuite",latitude,longitude,false);
+
+        /* BDD
+        Space space = new Space("Gratuite",latitude,longitude,"Occupée");
         spaceBdd.open();
         spaceBdd.insertSpace(space);
         Space spaceFromBdd = spaceBdd.getSpaceWithLatLong(space.getLatitudeSpace());
@@ -94,7 +110,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
         spaceBdd.close();
 
-        //
+        */
 
         LocationManager locationManager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
 
@@ -107,6 +123,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         latitudeField = (TextView) findViewById(R.id.idvaleurlatitude);
         longitudeField = (TextView) findViewById(R.id.idvaleurlongitude);
+        rechercheField = (TextView) findViewById(R.id.idrecherche);
+        rechercheField.setHint("Rechercher");
+
         ajouterBouton = (Button) findViewById(R.id.idboutonajouter);
         ajouterBouton.setOnClickListener(this);
         tarifBouton= (Button) findViewById(R.id.idboutontarif);
@@ -127,19 +146,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 latitudeField.setText("Indispo");
                 longitudeField.setText("Indispo");
             }
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            return;
+
         }
 
 
 
         */
+
+
 
 
     }
@@ -159,26 +173,62 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     private void ajouterSpace(){
-        setProgressBarIndeterminateVisibility(true);
+
 
         Geocoder geo= new Geocoder(MapsActivity.this);
+
+        //ALERTBOX
+        LayoutInflater factory = LayoutInflater.from(this);
+        final View alertDialogView = factory.inflate(R.layout.alertdialogperso, null);
+
+        AlertDialog.Builder adb = new AlertDialog.Builder(this);
+        TextView maPosition = new TextView(this);
+
+        adb.setView(alertDialogView);
+        adb.setTitle("Ajouter une place de parking");
+        adb.setIcon(android.R.drawable.ic_dialog_alert);
+
+
         try{
-            List<Address>adresses = geo.getFromLocation(latitude,longitude,1);
-            if(adresses != null && adresses.size()==1){
+            List<Address>adresses = geo.getFromLocation(latitude, longitude, 1);
+            //if(adresses != null && adresses.size()==1){
                 Address adresse = adresses.get(0);
-                ((TextView)findViewById(R.id.adresse)).setText(String.format("%s,%s,%s",
-                        adresse.getAddressLine(0),
-                        adresse.getPostalCode(),
-                        adresse.getLocality()));
-            }
-            else{
-                ((TextView)findViewById(R.id.adresse)).setText("Adresse indéterminée");
-            }
+                String rue = adresse.getAddressLine(0);
+                String cp = adresse.getPostalCode();
+                String ville = adresse.getLocality();
+
+
+                maPosition= (TextView) alertDialogView.findViewById(R.id.idmaposition);
+                maPosition.setText(String.valueOf("Ma position actuelle :\n Coordonées GPS : (" + latitude +";"+ longitude + ")\n Adresse :\n" + rue + " " + cp + " " + ville));
+
+                /*String maPosition = "Ma position : " + rue +" "+ cp +" "+ville;
+                ((TextView) findViewById(R.id.adresse)).setText(maPosition);*/
+            //}
+            /*else{
+                ((TextView)findViewById(R.id.idmaposition)).setText("Adresse indéterminée");
+            }*/
         } catch (IOException e) {
-            e.printStackTrace();
-            ((TextView)findViewById(R.id.adresse)).setText("Adresse indéterminée");
+           /* e.printStackTrace();
+            ((TextView)findViewById(R.id.idmaposition)).setText("Adresse indéterminée");*/
         }
-        setProgressBarIndeterminateVisibility(false);
+
+        adb.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+                String msg = " Place ajoutée au Park !";
+                Toast.makeText(MapsActivity.this, msg, Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        adb.setNegativeButton("Annuler", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                /*finish();*/
+            }
+        });
+        adb.show();
+
+        //FIN DIALOGBOX
+
     }
 
 
@@ -195,19 +245,20 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
      */
     @Override
     public void onMapReady(GoogleMap googleMap) {
+
+
+
         mMap = googleMap;
         //mMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE); //Type Satellite (trop energivore)
-        //mMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
+        mMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
         //Zoom sur ...
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(CAMPUS, 4));
-        mMap.animateCamera(CameraUpdateFactory.zoomTo(15), 3000, null); //13 normal 15 Hybrid
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(INSSET, 5));
+        mMap.animateCamera(CameraUpdateFactory.zoomTo(16), 4000, null); //13 normal 15 Hybrid
 
         //Marqueurs
         final Marker insset = mMap.addMarker(new MarkerOptions().position(INSSET).title("Aurevoir le centre ville !"));
         final Marker campus = mMap.addMarker(new MarkerOptions().position(CAMPUS).title("Notre nouveau campus !"));
 
-        LatLng position = new LatLng(latitude,longitude);
-        maPosition = mMap.addMarker(new MarkerOptions().title("Vous êtes ici !").position(position));
 
 
     }
@@ -224,13 +275,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         setProgressBarIndeterminateVisibility(true);
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             locationManager.requestLocationUpdates(source, 400, 1, (LocationListener) this);
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
 
         }
 
@@ -264,12 +308,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     /*Quand la position de l'utilisateur change */
     @Override
     public void onLocationChanged(Location location) {
+
+
         latitude = location.getLatitude();
         longitude = location.getLongitude();
         accuracy = location.getAccuracy();
 
-        String myLocation = "Latitude : " + latitude + "\nLongitude : " + longitude;
-        Toast.makeText(this,myLocation,Toast.LENGTH_LONG).show();
+        /*String myLocation = "Latitude : " + latitude + "\nLongitude : " + longitude;
+        Toast.makeText(this,myLocation,Toast.LENGTH_LONG).show();*/
 
         /*ERROR
         String msg = String.format(
@@ -279,10 +325,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         latitudeField.setText(String.valueOf("Lat: " + latitude));
         longitudeField.setText(String.valueOf("Long: " + longitude));
+
+
         LatLng position = new LatLng(latitude,longitude);
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(position, 14));
-        //mMap.animateCamera(CameraUpdateFactory.zoomTo(14), 3000, null);
-        maPosition.setPosition(position);
+        final Marker maposition = mMap.addMarker(new MarkerOptions().title("Vous êtes ici !").position(position));
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(position, 16));
+        //mMap.animateCamera(CameraUpdateFactory.zoomTo(15), 3000, null);
+        maposition.setPosition(position);
+
     }
 
 
@@ -305,13 +355,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         super.onPause();
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             locationManager.removeUpdates(this);
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
+
         }
 
     }

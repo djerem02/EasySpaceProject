@@ -13,6 +13,7 @@
     <string name="nouvelle_position">Nouvelle position : Latitude = %1$s, Longitude = %2$s avec une précision de %4$s mètres </string>
 
     <string name="all">€</string>
+    <string name="parking_gratuit">Parking Gratuit</string>
     <string name="non_payante">Non payantes</string>
 
 </resources>
