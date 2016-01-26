@@ -7,6 +7,7 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
+import android.graphics.BitmapFactory;
 import android.location.Address;
 import android.location.Criteria;
 import android.location.Geocoder;
@@ -14,6 +15,7 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.location.LocationProvider;
+import android.net.Uri;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
@@ -24,15 +26,27 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.firebase.client.ChildEventListener;
+import com.firebase.client.DataSnapshot;
+import com.firebase.client.Firebase;
+import com.firebase.client.FirebaseError;
+import com.google.android.gms.appindexing.Action;
+import com.google.android.gms.appindexing.AppIndex;
+import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -40,13 +54,17 @@ import com.google.android.gms.vision.barcode.Barcode;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback,LocationListener,View.OnClickListener {
+import com.easyspaceproject.Parking;
+
+public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, LocationListener, View.OnClickListener {
 
     private GoogleMap mMap;
     static final LatLng INSSET = new LatLng(49.8495161, 3.2874817);
     static final LatLng CAMPUS = new LatLng(49.8374935, 3.3000117);
-    static final LatLng FRANCE = new LatLng(46.2157467,2.2088257);
+    static final LatLng FRANCE = new LatLng(46.2157467, 2.2088257);
+
 
     private LocationManager locationManager;
     private Location location;
@@ -58,12 +76,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private TextView latitudeField;
     private TextView longitudeField;
-    private TextView rechercheField;
+    //private TextView rechercheField;
 
-    //private TextView maPosition;
+
     private Button ajouterBouton;
-    private Button tarifBouton;
 
+    private Button tarifBouton;
+    /**
+     * ATTENTION: This was auto-generated to implement the App Indexing API.
+     * See https://g.co/AppIndexing/AndroidStudio for more information.
+     */
+    private GoogleApiClient client;
 
 
     @Override
@@ -74,17 +97,50 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+        /*FireBase*/
+        // Get ListView object from xml
+        final ListView listView = (ListView) findViewById(R.id.listView);
 
-          /* Loading
+        // Create a new Adapter
+        final ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
+                android.R.layout.simple_list_item_1, android.R.id.text1);
+
+        // Assign adapter to ListView
+        listView.setAdapter(adapter);
+
+        // Use Firebase to populate the list.
+        Firebase.setAndroidContext(this);
+
+        new Firebase("https://easyspaceproject.firebaseio.com/EasySpace")
+                .addChildEventListener(new ChildEventListener() {
+                    public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                        adapter.add((String) dataSnapshot.child("text").getValue());
+                    }
+
+                    public void onChildRemoved(DataSnapshot dataSnapshot) {
+                        adapter.remove((String) dataSnapshot.child("text").getValue());
+                    }
+
+                    public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+                    }
+
+                    public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+                    }
+
+                    public void onCancelled(FirebaseError firebaseError) {
+                    }
+                });
+
+        //Loading
         ProgressDialog progress = new ProgressDialog(this);
         progress.setTitle("Chargement...");
         progress.setMessage("Veuillez patienter, chargement en cours...");
         progress.show();
-        */
+
 
 
         //Création de la bdd
-        SpacesBDD spaceBdd = new SpacesBDD(this);
+        //SpacesBDD spaceBdd = new SpacesBDD(this);
 
         /* BDD
         Space space = new Space("Gratuite",latitude,longitude,"Occupée");
@@ -112,7 +168,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         */
 
-        LocationManager locationManager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
+        LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
         //POUR CLASSE
         // MonLocationListener locationListener = new MonLocationListener();
@@ -123,12 +179,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         latitudeField = (TextView) findViewById(R.id.idvaleurlatitude);
         longitudeField = (TextView) findViewById(R.id.idvaleurlongitude);
-        rechercheField = (TextView) findViewById(R.id.idrecherche);
-        rechercheField.setHint("Rechercher");
+        //rechercheField = (TextView) findViewById(R.id.idrecherche);
+        //rechercheField.setHint("Rechercher");
 
         ajouterBouton = (Button) findViewById(R.id.idboutonajouter);
         ajouterBouton.setOnClickListener(this);
-        tarifBouton= (Button) findViewById(R.id.idboutontarif);
+        tarifBouton = (Button) findViewById(R.id.idboutontarif);
         tarifBouton.setOnClickListener(this);
     /*
         Criteria criteria = new Criteria();
@@ -154,16 +210,18 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         */
 
 
-
-
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
     }
+
     protected boolean isRouteDisplayed() {
         return false;
     }
 
     //Méthode déclencher au clique sur un bouton
-    public void onClick(View v){
-        switch (v.getId()){
+    public void onClick(View v) {
+        switch (v.getId()) {
             case R.id.idboutonajouter:
                 ajouterSpace();
                 break;
@@ -172,10 +230,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
-    private void ajouterSpace(){
+    private void ajouterSpace() {
 
 
-        Geocoder geo= new Geocoder(MapsActivity.this);
+        Geocoder geo = new Geocoder(MapsActivity.this);
 
         //ALERTBOX
         LayoutInflater factory = LayoutInflater.from(this);
@@ -189,33 +247,74 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         adb.setIcon(android.R.drawable.ic_dialog_alert);
 
 
-        try{
-            List<Address>adresses = geo.getFromLocation(latitude, longitude, 1);
-            //if(adresses != null && adresses.size()==1){
+        try {
+            List<Address> adresses = geo.getFromLocation(latitude, longitude, 1);
+            if (adresses != null && adresses.size() == 1) {
                 Address adresse = adresses.get(0);
                 String rue = adresse.getAddressLine(0);
                 String cp = adresse.getPostalCode();
                 String ville = adresse.getLocality();
 
 
-                maPosition= (TextView) alertDialogView.findViewById(R.id.idmaposition);
-                maPosition.setText(String.valueOf("Ma position actuelle :\n Coordonées GPS : (" + latitude +";"+ longitude + ")\n Adresse :\n" + rue + " " + cp + " " + ville));
+                maPosition = (TextView) alertDialogView.findViewById(R.id.idmaposition);
+                maPosition.setText(String.valueOf("Ma position actuelle :\n Coordonées GPS : (" + latitude + ";" + longitude + ")\n Adresse :\n" + rue + " " + cp + " " + ville));
 
                 /*String maPosition = "Ma position : " + rue +" "+ cp +" "+ville;
                 ((TextView) findViewById(R.id.adresse)).setText(maPosition);*/
-            //}
-            /*else{
-                ((TextView)findViewById(R.id.idmaposition)).setText("Adresse indéterminée");
-            }*/
+            } else {
+                ((TextView) findViewById(R.id.idmaposition)).setText("Adresse indéterminée");
+            }
         } catch (IOException e) {
-           /* e.printStackTrace();
-            ((TextView)findViewById(R.id.idmaposition)).setText("Adresse indéterminée");*/
+            e.printStackTrace();
+            ((TextView) findViewById(R.id.idmaposition)).setText("Adresse indéterminée");
         }
 
         adb.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int which) {
+
+
+                final CheckBox checkBox = (CheckBox) findViewById(R.id.idcheckBox);
+                String type = null;
+                /*if(checkBox.isChecked()){
+                    type = "gratuite";
+                }*/
+
+
+
+                LatLng position = new LatLng(latitude, longitude);
+
+                Geocoder geo = new Geocoder(MapsActivity.this);
+                List<Address> adresses = null;
+                try {
+                    adresses = geo.getFromLocation(latitude, longitude, 1);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                //AJOUT FIREBASE
+                Address adresse = adresses.get(0);
+                String rue = adresse.getAddressLine(0);
+                String cp = adresse.getPostalCode();
+                String ville = adresse.getLocality();
+
+                Integer nbrPlaces = 500;
+                String phone = "00 00 00 00 00";
+                String label = rue;
+
+                Firebase ref = new Firebase("https://glaring-inferno-9753.firebaseio.com/EasySpace/parking");
+                Firebase EasySpace = ref.child("places");
+                Parking parking = new Parking(label,rue,cp,ville,phone,latitude,longitude,nbrPlaces);
+                EasySpace.push().setValue(parking);
+
+
+                final Marker newplace = mMap.addMarker(new MarkerOptions()
+                        .title("Parking ajouté !").snippet("(" + latitude + " ; " + longitude + ")")
+                        .position(position));
+                newplace.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
+
                 String msg = " Place ajoutée au Park !";
                 Toast.makeText(MapsActivity.this, msg, Toast.LENGTH_SHORT).show();
+
             }
         });
 
@@ -231,7 +330,46 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     }
 
+    /*Quand la position de l'utilisateur change */
+    @Override
+    public void onLocationChanged(Location location) {
 
+
+        latitude = location.getLatitude();
+        longitude = location.getLongitude();
+        accuracy = location.getAccuracy();
+
+        /*String myLocation = "Latitude : " + latitude + "\nLongitude : " + longitude;
+        Toast.makeText(this,myLocation,Toast.LENGTH_LONG).show();*/
+
+        /*ERROR
+        String msg = String.format(
+                getResources().getString(R.string.nouvelle_position), latitude,
+                longitude, accuracy);
+        Toast.makeText(this, msg, Toast.LENGTH_LONG).show();*/
+
+        latitudeField.setText(String.valueOf("Lat: " + latitude));
+        longitudeField.setText(String.valueOf("Long: " + longitude));
+
+
+        LatLng position = new LatLng(latitude, longitude);
+        final Marker maposition = mMap.addMarker(new MarkerOptions()
+                .title("Vous êtes ici !").snippet("(" + latitude + " ; " + longitude + ")")
+                .position(position));
+        maposition.setAlpha((float) 0.6);
+        //maposition.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE));
+        maposition.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.markerauto));
+        maposition.setVisible(true);
+
+        /*mMap.addCircle(new CircleOptions().center(position).radius(100)
+                .strokeColor(0xff00f00).strokeWidth(3));*/
+
+        //mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(position, 16));
+        //mMap.animateCamera(CameraUpdateFactory.zoomTo(15), 3000, null);
+
+
+
+    }
 
 
     /**
@@ -247,22 +385,19 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onMapReady(GoogleMap googleMap) {
 
 
-
         mMap = googleMap;
         //mMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE); //Type Satellite (trop energivore)
-        mMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
+        //mMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
         //Zoom sur ...
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(INSSET, 5));
-        mMap.animateCamera(CameraUpdateFactory.zoomTo(16), 4000, null); //13 normal 15 Hybrid
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(FRANCE, 5));
+        mMap.animateCamera(CameraUpdateFactory.zoomTo(6), 4000, null); //13 normal 15 Hybrid 5 France
 
         //Marqueurs
-        final Marker insset = mMap.addMarker(new MarkerOptions().position(INSSET).title("Aurevoir le centre ville !"));
-        final Marker campus = mMap.addMarker(new MarkerOptions().position(CAMPUS).title("Notre nouveau campus !"));
-
+        final Marker insset = mMap.addMarker(new MarkerOptions().position(INSSET).title("INSSET").snippet("Aurevoir le centre ville !"));
+        final Marker campus = mMap.addMarker(new MarkerOptions().position(CAMPUS).title("IUT").snippet("Notre nouveau campus !"));
 
 
     }
-
 
 
     //Localisation
@@ -301,38 +436,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 newStatus = "Disponible";
                 break;
         }
-        String msg = String.format(getResources().getString(R.string.source_statut),source, newStatus);
+        String msg = String.format(getResources().getString(R.string.source_statut), source, newStatus);
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
-    }
-
-    /*Quand la position de l'utilisateur change */
-    @Override
-    public void onLocationChanged(Location location) {
-
-
-        latitude = location.getLatitude();
-        longitude = location.getLongitude();
-        accuracy = location.getAccuracy();
-
-        /*String myLocation = "Latitude : " + latitude + "\nLongitude : " + longitude;
-        Toast.makeText(this,myLocation,Toast.LENGTH_LONG).show();*/
-
-        /*ERROR
-        String msg = String.format(
-                getResources().getString(R.string.nouvelle_position), latitude,
-                longitude, accuracy);
-        Toast.makeText(this, msg, Toast.LENGTH_LONG).show();*/
-
-        latitudeField.setText(String.valueOf("Lat: " + latitude));
-        longitudeField.setText(String.valueOf("Long: " + longitude));
-
-
-        LatLng position = new LatLng(latitude,longitude);
-        final Marker maposition = mMap.addMarker(new MarkerOptions().title("Vous êtes ici !").position(position));
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(position, 16));
-        //mMap.animateCamera(CameraUpdateFactory.zoomTo(15), 3000, null);
-        maposition.setPosition(position);
-
     }
 
 
@@ -360,5 +465,44 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     }
 
+    @Override
+    public void onStart() {
+        super.onStart();
+
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        client.connect();
+        Action viewAction = Action.newAction(
+                Action.TYPE_VIEW, // TODO: choose an action type.
+                "Maps Page", // TODO: Define a title for the content shown.
+                // TODO: If you have web page content that matches this app activity's content,
+                // make sure this auto-generated web page URL is correct.
+                // Otherwise, set the URL to null.
+                Uri.parse("http://host/path"),
+                // TODO: Make sure this auto-generated app deep link URI is correct.
+                Uri.parse("android-app://com.easyspaceproject/http/host/path")
+        );
+        AppIndex.AppIndexApi.start(client, viewAction);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        Action viewAction = Action.newAction(
+                Action.TYPE_VIEW, // TODO: choose an action type.
+                "Maps Page", // TODO: Define a title for the content shown.
+                // TODO: If you have web page content that matches this app activity's content,
+                // make sure this auto-generated web page URL is correct.
+                // Otherwise, set the URL to null.
+                Uri.parse("http://host/path"),
+                // TODO: Make sure this auto-generated app deep link URI is correct.
+                Uri.parse("android-app://com.easyspaceproject/http/host/path")
+        );
+        AppIndex.AppIndexApi.end(client, viewAction);
+        client.disconnect();
+    }
 }
 
