@@ -2,11 +2,16 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.easyspaceproject" >
 
+    <uses-library
+        android:name="com.google.maps.android"
+        android:required="true" />
+
     <uses-permission android:name="com.easyspaceproject.blog_gps.permission.MAPS_RECEIVE" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="com.google.android.providers.gaf.permission.READ_GSERVICES" />
+
     <!--
          The ACCESS_COARSE/FINE_LOCATION permissions are not required to use
          Google Maps Android API v2, but you must specify either coarse or fine
@@ -37,6 +42,11 @@
         <activity
             android:name=".MapsActivity"
             android:label="@string/title_activity_maps" >
+
+
+
+        </activity>
+        <activity android:name=".IconGeneratorDemoActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

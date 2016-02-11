@@ -1,7 +1,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:gpb="http://schemas.android.com/apk/res-auto"
     android:layout_width="fill_parent"
-    android:layout_height="fill_parent">*
+    android:layout_height="fill_parent">
 
 
 
@@ -15,26 +15,33 @@
         android:layout_alignParentBottom="true"
         tools:context="com.easyspaceproject.MapsActivity" />
 
-
-    <Button
+    <!--<Button
         android:layout_width="wrap_content"
         android:layout_height="65dp"
-        android:layout_toLeftOf="@+id/idboutonajouter"
-        android:text="@string/all"
-        android:id="@+id/idboutontarif"/>
-
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="65dp"
-        android:layout_alignParentRight="true"
         android:text="@string/boutonajouter"
-        android:id="@+id/idboutonajouter" />
-
-    <!--<TextView android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/adresse"
+        android:id="@+id/idboutonajouter"
+        android:layout_toLeftOf="@+id/togglemoi"/>-->
+    <ToggleButton
+        android:layout_width="150dp"
+        android:layout_height="65dp"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="10dip" />-->
+        android:id="@+id/togglemoi"
+        android:textOn="Je suis garé !"
+        android:textOff="Je quitte ma place !"
+        android:checked="true" />
+
+
+    <Spinner
+        android:layout_width="80dp"
+        android:layout_height="65dp"
+        android:text="@string/all"
+        android:id="@+id/spinnerTypeParking"
+        android:prompt="@string/place_type"
+        android:entries="@array/typeparkinglist"
+        android:layout_toRightOf="@id/togglemoi"/>
+
+
+
 
     <LinearLayout
         android:orientation="vertical"
@@ -51,7 +58,7 @@
             android:layout_row="0"
             android:layout_column="0"
             android:layout_columnSpan="2" />-->
-
+        <!--
         <EditText
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -73,18 +80,18 @@
                 android:textSize="13dp"
                 android:layout_row="1"
                 android:layout_column="1" />
+            -->
     </LinearLayout>
+        <TextView android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/adresse"
+            android:editable="false"
+            android:focusable="false"
+            android:textSize="15dp"
+            android:layout_below="@id/spinnerTypeParking"
+            android:layout_centerHorizontal="true" />
 
 
-    <!--<EditText
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/idmaposition"
-        android:text="0.0"
-        android:editable="false"
-        android:focusable="false"
-        android:textSize="10dp"
-        />-->
 
     <ListView
         android:id="@+id/listView"

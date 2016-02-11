@@ -6,14 +6,26 @@
     <string name="boutonajouter">Ajouter</string>
 
 
-
     <string name="source_active">La source %s est maintenant activée.</string>
     <string name="source_desactive">La source  %s est maintenant désactivée.</string>
     <string name="source_statut">Etat de la source %1$s : %2$s.</string>
     <string name="nouvelle_position">Nouvelle position : Latitude = %1$s, Longitude = %2$s avec une précision de %4$s mètres </string>
 
+    <string name="place_type">Type</string>
     <string name="all">€</string>
-    <string name="parking_gratuit">Parking Gratuit</string>
-    <string name="non_payante">Non payantes</string>
+    <string name="place_gratuite">Gratuit</string>
+    <string name="place_temporaire">Durée Limitée</string>
+    <string name="place_handicapé">Handicapé</string>
+
+    <string name="nbr_places">Nombre de places environ</string>
+    <string name="petit_parking">100</string>
+    <string name="moyen_parking">200</string>
+    <string name="grand_parking">300</string>
+
+    <string name="item_clustering">Clustering</string>
+    <string name="item_heat_map">Heat Map</string>
+    <string name="item_polylines">Polyline Decoding</string>
+    <string name="item_spherical_geometry">Spherical Geometry Utils</string>
+
 
 </resources>

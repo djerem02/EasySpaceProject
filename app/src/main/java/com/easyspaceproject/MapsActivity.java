@@ -1,53 +1,41 @@
 package com.easyspaceproject;
 
 import android.Manifest;
-import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.ProgressDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
-import android.graphics.BitmapFactory;
 import android.graphics.Color;
-import android.graphics.Interpolator;
+import android.graphics.drawable.Drawable;
 import android.location.Address;
-import android.location.Criteria;
 import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.location.LocationProvider;
 import android.net.Uri;
-import android.os.SystemClock;
+import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
-import android.os.Bundle;
-import android.util.Log;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
-import android.view.animation.AccelerateDecelerateInterpolator;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
-import android.widget.EditText;
-import android.widget.ListView;
+import android.widget.CompoundButton;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ToggleButton;
 
 import com.firebase.client.ChildEventListener;
 import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
+import com.firebase.client.Query;
 import com.firebase.client.ValueEventListener;
 import com.firebase.geofire.GeoFire;
 import com.firebase.geofire.GeoLocation;
 import com.firebase.geofire.GeoQuery;
 import com.firebase.geofire.GeoQueryEventListener;
-import com.firebase.geofire.LocationCallback;
 import com.google.android.gms.appindexing.Action;
 import com.google.android.gms.appindexing.AppIndex;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -62,23 +50,48 @@ import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.vision.barcode.Barcode;
+import com.google.maps.android.clustering.ClusterManager;
+import com.google.maps.android.ui.IconGenerator;
+import android.graphics.Color;
+
+import android.content.res.Resources;
+import android.graphics.*;
+import android.graphics.drawable.Drawable;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
-import java.util.logging.Handler;
-import java.util.logging.LogRecord;
 
-import com.easyspaceproject.Parking;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, LocationListener, View.OnClickListener,GoogleMap.OnCameraChangeListener, GeoQueryEventListener {
+    /*class MonInfoWindow implements GoogleMap.InfoWindowAdapter{
+        private View monContenu;
 
-    private double latitude = 49.8403179; // var a mettre dans geolocation qui sera getLocation
-    private double longitude = 3.297418300000004; // var a mettre dans geolocation qui sera getLocation
+
+        MonInfoWindow(){
+            monContenu = getLayoutInflater().inflate(R.layout.info_window_perso,null);
+        }
+
+        @Override
+        public View getInfoWindow(Marker marker) {
+            return null;
+        }
+
+        @Override
+        public View getInfoContents(Marker marker) {
+            TextView tvTitle = (TextView) monContenu.findViewById(R.id.title);
+            tvTitle.setText(marker.getTitle());
+            TextView tvSnippet = (TextView) monContenu.findViewById(R.id.snippet);
+            tvSnippet.setText(marker.getSnippet());
+            return monContenu;
+        }
+    }*/
+    private double latitude = 49.8479; // var a mettre dans geolocation qui sera getLocation
+    private double longitude = 3.284366; // var a mettre dans geolocation qui sera getLocation
     private float accuracy;
 
     private static final LatLng INSSET = new LatLng(49.8495161, 3.2874817);
@@ -91,13 +104,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     //private static final String TEST = "https://glaring-inferno-9753.firebaseio.com/EasySpace/parking";
 
 
-    private GoogleMap mMap;
+    public GoogleMap mMap;
     private Circle zone;
     private GeoFire geoFire;
+    private Firebase firebase;
     private GeoQuery geoQuery;
     private Geocoder geo;
 
     private Map<String,Marker> markers;
+    private Marker newplace ;
 
     private LocationManager locationManager;
     private Location location;
@@ -107,10 +122,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private TextView latitudeField;
     private TextView longitudeField;
     //private TextView rechercheField;
-
-
     private Button ajouterBouton;
-    private Button tarifBouton;
+    private Spinner tarifBouton;
+
+    private ToggleButton ajouterToggle;
+
+    private String nbrPlaces = "100";
+    private String type = "?";
+
     /**
      * ATTENTION: This was auto-generated to implement the App Indexing API.
      * See https://g.co/AppIndexing/AndroidStudio for more information.
@@ -129,6 +148,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
+        geo = new Geocoder(MapsActivity.this);
         //Loading
         /*ProgressDialog progress = new ProgressDialog(this);
         progress.setTitle("Chargement...");
@@ -144,16 +164,19 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         //locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);// aremettre pos
         //locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,0,0,this);
 
-        latitudeField = (TextView) findViewById(R.id.idvaleurlatitude);
-        longitudeField = (TextView) findViewById(R.id.idvaleurlongitude);
+        //latitudeField = (TextView) findViewById(R.id.idvaleurlatitude);
+        //longitudeField = (TextView) findViewById(R.id.idvaleurlongitude);
 
         //rechercheField = (TextView) findViewById(R.id.idrecherche);
         //rechercheField.setHint("Rechercher");
 
-        ajouterBouton = (Button) findViewById(R.id.idboutonajouter);
-        ajouterBouton.setOnClickListener(this);
-        tarifBouton = (Button) findViewById(R.id.idboutontarif);
-        tarifBouton.setOnClickListener(this);
+        //ajouterBouton = (Button) findViewById(R.id.idboutonajouter);
+        //ajouterBouton.setOnClickListener(this);
+        ajouterToggle= (ToggleButton) findViewById(R.id.togglemoi);
+        ajouterToggle.setOnClickListener(this);
+
+        tarifBouton = (Spinner) findViewById(R.id.spinnerTypeParking);
+        //tarifBouton.setOnClickListener(this);
     /*
         Criteria criteria = new Criteria();
         source = locationManager.getBestProvider(criteria, false);
@@ -177,11 +200,28 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         */
 
-
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
         client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
+         /*FONCTIONS*/
 
+        TextView tvAdresse = new TextView(this);
+        try {
+            List<Address> adresses = geo.getFromLocation(latitude, longitude, 1);
+            if (adresses != null && adresses.size() == 1) {
+                Address adresse = adresses.get(0);
+                String rue = adresse.getAddressLine(0);
+                String cp = adresse.getPostalCode();
+                String ville = adresse.getLocality();
+                tvAdresse = (TextView)findViewById(R.id.adresse);
+                tvAdresse.setText(String.valueOf(rue + " " + cp + " " + ville));
+            } else {
+                ((TextView) findViewById(R.id.adresse)).setText("Adresse indéterminée");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            ((TextView) findViewById(R.id.adresse)).setText("Adresse indéterminée");
+        }
     }
 
     protected boolean isRouteDisplayed() {
@@ -191,17 +231,23 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     //Méthode déclencher au clique sur un bouton
     public void onClick(View v) {
         switch (v.getId()) {
-            case R.id.idboutonajouter:
+            /*case R.id.idboutonajouter:
                 ajouterSpace();
-                break;
+                break;*/
+            case R.id.togglemoi:
+                if (ajouterToggle.isChecked()){
+                    quitterSpace(newplace);
+                }else{ajouterSpace();}
             default:
                 break;
         }
     }
 
-    private void ajouterSpace() {
 
-        geo = new Geocoder(MapsActivity.this);
+    private void ajouterSpace() {
+        //J'occupe la place
+        //marker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
+
 
         //ALERTBOX
         LayoutInflater factory = LayoutInflater.from(this);
@@ -212,7 +258,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         adb.setView(alertDialogView);
         adb.setTitle("Ajouter une place de parking");
-        adb.setIcon(android.R.drawable.ic_dialog_alert);
+        adb.setIcon(R.drawable.addmarker);
 
         try {
             List<Address> adresses = geo.getFromLocation(latitude, longitude, 1);
@@ -238,9 +284,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         adb.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int which) {
-                List<Address> adresses =null;
+                List<Address> adresses = null;
                 try {
-                     adresses = geo.getFromLocation(latitude, longitude, 1);
+                    adresses = geo.getFromLocation(latitude, longitude, 1);
 
 
                 } catch (IOException e) {
@@ -250,29 +296,34 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 String rue = adresse.getAddressLine(0);
                 String cp = adresse.getPostalCode();
                 String ville = adresse.getLocality();
-                String label =rue;
-                Integer nbrPlaces = 200;
-                String type = "Gratuit";
+                String label = "parking "+rue;
+
                 String etat = "Libre";
 
-                /*
-                final CheckBox checkBox = (CheckBox) findViewById(R.id.idcheckBox);
+                //ToggleButton
+                final ToggleButton toggle = (ToggleButton)alertDialogView.findViewById(R.id.toggleButton);
+                type= (String) toggle.getText();
 
-                /*if(checkBox.isChecked()){
-                    type = "gratuite";
-                }*/
+
+                //Spinner
+                Spinner tailleParkingSpinner = (Spinner) alertDialogView.findViewById(R.id.spinnerTailleParking);
+                tailleParkingSpinner.setOnItemSelectedListener(new MyOnItemSelectedListener());
+                nbrPlaces = (String) tailleParkingSpinner.getSelectedItem();
+
+
                 final LatLng position = new LatLng(latitude, longitude);
 
                 /*WRITE*/
-                String park="parking "+label;
                     /*FIREBASE*/
 
-                    Firebase firebase = new Firebase(BASE);
-                    Parking parking = new Parking(label,rue,cp,ville,latitude,longitude,nbrPlaces,type,etat);
-                    firebase.child("firebase").child(park).setValue(parking);
+
+                Firebase firebase = new Firebase("https://easyspaceproject.firebaseio.com/EasySpace");
+                Parking parking = new Parking(label, rue, cp, ville, latitude, longitude, nbrPlaces, type, etat);
+                firebase.child("firebase").child(label).setValue(parking);
+
                     /*GEOFIRE*/
-                    GeoFire geoFire = new GeoFire(firebase.child("geofire"));
-                    geoFire.setLocation(park, new GeoLocation(latitude, longitude));
+                GeoFire geoFire = new GeoFire(firebase.child("geofire"));
+                geoFire.setLocation(label, new GeoLocation(latitude, longitude));
 
 
                 //Suppression
@@ -307,27 +358,31 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 });
 
                 */
-                final Marker newplace = mMap.addMarker(new MarkerOptions()
-                        .title("Parking ajouté !").snippet("(" + latitude + " ; " + longitude + ")")
+                /*final Marker*/newplace = mMap.addMarker(new MarkerOptions()
+                        .title(label).snippet("Vous êtes garé ici ! ")
                         .position(position));
-                newplace.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
+                newplace.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
+                newplace.setVisible(true);
 
                 String msg = " Place ajoutée au Park !";
                 Toast.makeText(MapsActivity.this, msg, Toast.LENGTH_SHORT).show();
 
             }//Fin Onclick
-        });//Fin Positive Button
-
-        adb.setNegativeButton("Annuler", new DialogInterface.OnClickListener() {
+        }).setNegativeButton("Non merci", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
             }
         });
+
         adb.show();
 
         //FIN DIALOGBOX
 
     } //FIN AJOUTERSPACE()
+    private void quitterSpace(Marker marker) {
+        marker.setVisible(false);
+        //marker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
+    }
 
     /*Quand la position de l'utilisateur change */
     @Override
@@ -368,7 +423,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
      * Manipulates the map once available.
      * This callback is triggered when the map is ready to be used.
      * This is where we can add markers or lines, add listeners or move the camera. In this case,
-     * we just add a marker near Sydney, Australia.
+     * we just add a info_window_perso near Sydney, Australia.
      * If Google Play services is not installed on the device, the user will be prompted to install
      * it inside the SupportMapFragment. This method will only be triggered once the user has
      * installed Google Play services and returned to the app.
@@ -395,7 +450,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         //add an event listener to start updating locations again
         geoQuery.addGeoQueryEventListener(this); //utilisé pour recup key
         //setup markers
-        this.markers = new HashMap<String,Marker>();
+        this.markers = new HashMap<String, Marker>();
 
         //mMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE); //Type Satellite (trop energivore)
         //mMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
@@ -407,7 +462,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         final Marker insset = mMap.addMarker(new MarkerOptions().position(INSSET).title("INSSET").snippet("Aurevoir le centre ville !"));
         final Marker campus = mMap.addMarker(new MarkerOptions().position(CAMPUS).title("IUT").snippet("Notre nouveau campus !"));
 
-
+        //mMap.setInfoWindowAdapter(new MonInfoWindow());
     }
 
 
@@ -532,12 +587,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     //Animation
-    /*private void animateMarkerTo(final Marker marker, final double lat, final double lng){
+    /*private void animateMarkerTo(final Marker info_window_perso, final double lat, final double lng){
         final Handler handler = new Handler();
         final long start = SystemClock.uptimeMillis();
         final long DURATION_MS = 3000;
         final Interpolator interpolator = new AccelerateDecelerateInterpolator();
-        final LatLng startPosition = marker.getPosition();
+        final LatLng startPosition = info_window_perso.getPosition();
         handler.post(new Runnable(){
             @Override
             public void run() {
@@ -547,7 +602,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                 double currentLat =(lat -startPosition.latitude)* v + startPosition.latitude;
                 double currentLng =(lng-startPosition.longitude)*v + startPosition.longitude;
-                marker.setPosition(new LatLng(currentLat,currentLng));
+                info_window_perso.setPosition(new LatLng(currentLat,currentLng));
 
                 //if animation is not finished yet , repeat
                 if(t<1){
@@ -577,23 +632,131 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     /*Display*/
 
-    final Set<String> parkingZone = new HashSet<String>();
+    //final Set<String> parkingZone = new HashSet<String>();
+        public void onKeyEntered(String label,GeoLocation location) {
+            /*ClusterManager<ClusterMarkerLocation> clusterManager = new ClusterManager<ClusterMarkerLocation>(this,mMap);
+            double lat;
+            double lng;
+            Random generator = new Random();
+            for( int i = 0; i < 1000; i++ ) {
+                lat = generator.nextDouble() / 3;
+                lng = generator.nextDouble() / 3;
+                if (generator.nextBoolean()) {
+                    lat = -lat;
+                }
+                if (generator.nextBoolean()) {
+                    lng = -lng;
+                }
+            }*/
+            /*String key=label ;
+            parkingZone.add(key);
 
-        @Override
-        public void onKeyEntered(String label, GeoLocation location) {
-            parkingZone.add(label);
+            /*firebase.child("EasySpace/firebase").child(key).once("value",function(dataSnapshot){
 
-            //Add a new marker to the map
-            Marker marker = mMap.addMarker(new MarkerOptions().position(new LatLng(location.latitude, location.longitude)));
-            markers.put(label, marker);
-        }
 
-        @Override
-        public void onKeyExited(String label) {
-            parkingZone.remove(label);
-            // Remove any old marker
+            });*/
+
+            Firebase data = new Firebase("https://easyspaceproject.firebaseio.com/EasySpace/firebase");
+
+
+
+            //Ajoute les markers (utils)
+            //IconGenerator icon = new IconGenerator(this);
+            //addIcon(icon, "Default", new LatLng(location.latitude, location.longitude));
+
+
+            //Ajoute les markers
+                final Marker marker  = mMap.addMarker(new MarkerOptions().position(new LatLng(location.latitude, location.longitude)));
+                marker.setTitle(label);
+
+            /*data.addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot snapshot) {
+                    //marker.setSnippet(String.valueOf(snapshot.getValue())); //donne la liste
+                    //marker.setSnippet("Il y a  " + snapshot.getChildrenCount() + " catégories."); //nombre de catégories dans la table.
+                    for (DataSnapshot postSnapshot : snapshot.getChildren()) {
+                        Parking parking = postSnapshot.getValue(Parking.class);
+                        marker.setSnippet(parking.getNbrPlaces()+ " places - " + parking.getType());
+                    }
+                }
+
+                @Override
+                public void onCancelled(FirebaseError firebaseError) {
+                    System.out.println("The read failed: " + firebaseError.getMessage());
+                }
+            });
+            */
+            //Query query = data.orderByChild(label);
+            //Query query = data.orderByChild("nbrPlaces").limitToFirst(2);
+            /*data.limitToFirst(1).addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot datasnapshot) {
+                    //for (DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
+                        //Parking parking = postSnapshot.getValue(Parking.class);
+
+                        //marker.setSnippet(parking.getNbrPlaces() + " - " + parking.getType());
+
+                    //}
+
+                }
+
+                @Override
+                public void onCancelled(FirebaseError firebaseError) {
+
+                }
+            });*/
+
+            /*data.limitToFirst(2).addChildEventListener(new ChildEventListener() {
+                @Override
+                public void onChildAdded(DataSnapshot dataSnapshot, String previous) {
+                    Parking parking = dataSnapshot.getValue(Parking.class);
+
+                    marker.setSnippet(parking.getNbrPlaces()+" - "+parking.getType());
+
+                }
+
+                @Override
+                public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+                    String typemaj = (String) dataSnapshot.child("type").getValue();
+                    String nbrPlacesmj = (String)dataSnapshot.child("nbrPlaces").getValue();
+                    marker.setSnippet(nbrPlacesmj+" - "+typemaj);
+                }
+
+                @Override
+                public void onChildRemoved(DataSnapshot dataSnapshot) {
+                    String typedel = (String) dataSnapshot.child("type").getValue();
+                    String nbrPlacesdel = (String) dataSnapshot.child("nbrPlaces").getValue();
+                    marker.setSnippet(String.valueOf(nbrPlacesdel)+" - "+typedel);
+
+                }
+
+                @Override
+                public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+                }
+
+                @Override
+                public void onCancelled(FirebaseError firebaseError) {
+
+                }
+            });*/
+
+                //Ajoute la couleur verte
+                marker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
+                //Affiche infowindow
+                marker.showInfoWindow();
+                markers.put(label, marker);
+
+            //clusterManager.addItem(new  ClusterMarkerLocation(new LatLng(location.latitude,location.longitude)));
+            }
+
+
+    @Override
+    public void onKeyExited(String label) {
+            //parkingZone.remove(label);
+            // Remove any old info_window_perso
             Marker marker = markers.get(label);
-            if (marker !=null){
+            if (marker != null){
                 marker.remove();
                 markers.remove(label);
             }
@@ -602,10 +765,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         @Override
         public void onKeyMoved(String label, GeoLocation location) {
-            //Move the marker
+            //Move the info_window_perso
             Marker marker = markers.get(label);
             if(marker != null){
-                //this.animateMarkerTo(marker, location.latitude, location.longitude);
+                //this.animateMarkerTo(info_window_perso, location.latitude, location.longitude);
             }
         }
 
@@ -624,5 +787,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         .show();
             }*/
         };
+
+    private void addIcon(IconGenerator iconFactory, String text, LatLng position) {
+        MarkerOptions markerOptions = new MarkerOptions().
+                icon(BitmapDescriptorFactory.fromBitmap(iconFactory.makeIcon(text))).
+                position(position).
+                anchor(iconFactory.getAnchorU(), iconFactory.getAnchorV());
+
+        mMap.addMarker(markerOptions);
+    }
+
+
 
 }
