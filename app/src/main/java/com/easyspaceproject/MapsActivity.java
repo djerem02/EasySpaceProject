@@ -111,6 +111,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private GeoQuery geoQuery;
     private Geocoder geo;
 
+
+
     private Map<String,Marker> markers;
     private Marker newplace ;
 
@@ -149,6 +151,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mapFragment.getMapAsync(this);
 
         geo = new Geocoder(MapsActivity.this);
+
         //Loading
         /*ProgressDialog progress = new ProgressDialog(this);
         progress.setTitle("Chargement...");
@@ -210,11 +213,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             List<Address> adresses = geo.getFromLocation(latitude, longitude, 1);
             if (adresses != null && adresses.size() == 1) {
                 Address adresse = adresses.get(0);
-                String rue = adresse.getAddressLine(0);
+                String rue = adresse.getThoroughfare();
                 String cp = adresse.getPostalCode();
                 String ville = adresse.getLocality();
                 tvAdresse = (TextView)findViewById(R.id.adresse);
-                tvAdresse.setText(String.valueOf(rue + " " + cp + " " + ville));
+                tvAdresse.setText(String.valueOf(rue+" " + cp + " " + ville));
             } else {
                 ((TextView) findViewById(R.id.adresse)).setText("Adresse indéterminée");
             }
@@ -264,7 +267,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             List<Address> adresses = geo.getFromLocation(latitude, longitude, 1);
             if (adresses != null && adresses.size() == 1) {
                 Address adresse = adresses.get(0);
-                String rue = adresse.getAddressLine(0);
+                String rue = adresse.getThoroughfare();
                 String cp = adresse.getPostalCode();
                 String ville = adresse.getLocality();
 
@@ -292,13 +295,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+
                 Address adresse = adresses.get(0);
-                String rue = adresse.getAddressLine(0);
+                String rue = adresse.getThoroughfare();
                 String cp = adresse.getPostalCode();
                 String ville = adresse.getLocality();
-                String label = "parking "+rue;
+                String label = "Parking "+rue;
 
-                String etat = "Libre";
+                String etat = "Occupé";
 
                 //ToggleButton
                 final ToggleButton toggle = (ToggleButton)alertDialogView.findViewById(R.id.toggleButton);
@@ -379,8 +383,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         //FIN DIALOGBOX
 
     } //FIN AJOUTERSPACE()
-    private void quitterSpace(Marker marker) {
+    private void quitterSpace(Marker marker, String etat) {
         marker.setVisible(false);
+        etat="Libre";
         //marker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
     }
 
