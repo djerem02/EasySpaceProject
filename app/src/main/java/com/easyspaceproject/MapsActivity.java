@@ -2,6 +2,7 @@ package com.easyspaceproject;
 
 import android.Manifest;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -90,19 +91,20 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             return monContenu;
         }
     }*/
-    private double latitude = 49.8479; // var a mettre dans geolocation qui sera getLocation
-    private double longitude = 3.284366; // var a mettre dans geolocation qui sera getLocation
+    private double latitude= 49.84732; //dur
+    private double longitude= 3.289103; //dur
+    private double malatitude;          //localisé
+    private double malongitude;         //localisé
     private float accuracy;
 
     private static final LatLng INSSET = new LatLng(49.8495161, 3.2874817);
     private static final LatLng CAMPUS = new LatLng(49.8374935, 3.3000117);
     private static final LatLng FRANCE = new LatLng(46.2157467, 2.2088257);
-    private final GeoLocation CENTRE = new GeoLocation(latitude,longitude);
+    private final GeoLocation CENTRE = new GeoLocation(latitude, longitude); // à changer selon
     private static final int ZOOM = 17;
     private static final float RADIUS = (float) 1;
     private static final String BASE = "https://easyspaceproject.firebaseio.com/EasySpace/geofire";
-    //private static final String TEST = "https://glaring-inferno-9753.firebaseio.com/EasySpace/parking";
-
+    LatLng position = new LatLng(CENTRE.latitude, CENTRE.longitude);
 
     public GoogleMap mMap;
     private Circle zone;
@@ -115,24 +117,31 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private Map<String,Marker> markers;
     private Marker newplace ;
+    private Marker monMarker;
+
 
     private LocationManager locationManager;
     private Location location;
     private String source;
 
 
-    private TextView latitudeField;
-    private TextView longitudeField;
+    //private TextView latitudeField;
+    //private TextView longitudeField;
     //private TextView rechercheField;
-    private Button ajouterBouton;
+    //private Button ajouterBouton;
     private Spinner tarifBouton;
-
     private ToggleButton ajouterToggle;
 
-    private String nbrPlaces = "100";
-    private String type = "?";
+    private String nbrPlaces = "nbrPlaces";
+    private String type = "type";
+    private String etat = "etat";
+    private String rue = "rue";
+    private String cp = "cp";
+    private String ville= "ville";
+    private String label = "Parking ";
 
-    /**
+
+    /*
      * ATTENTION: This was auto-generated to implement the App Indexing API.
      * See https://g.co/AppIndexing/AndroidStudio for more information.
      */
@@ -162,10 +171,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         // POUR CLASSE
         // MonLocationListener locationListener = new MonLocationListener();
 
-        //LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE); //a remettre pos
+        LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE); //a remettre pos
         //LES SOURCES
-        //locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);// aremettre pos
-        //locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,0,0,this);
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);// aremettre pos
+        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,0,0,this);
 
         //latitudeField = (TextView) findViewById(R.id.idvaleurlatitude);
         //longitudeField = (TextView) findViewById(R.id.idvaleurlongitude);
@@ -179,7 +188,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         ajouterToggle.setOnClickListener(this);
 
         tarifBouton = (Spinner) findViewById(R.id.spinnerTypeParking);
+        MonSpinnerPerso adapter = new MonSpinnerPerso(this,new Integer[]{R.drawable.all,R.drawable.parkgratuit,R.drawable.limit,R.drawable.phandicap});
+        tarifBouton.setAdapter(adapter);
         //tarifBouton.setOnClickListener(this);
+
+
     /*
         Criteria criteria = new Criteria();
         source = locationManager.getBestProvider(criteria, false);
@@ -208,9 +221,25 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
          /*FONCTIONS*/
 
+
+    }
+
+    protected boolean isRouteDisplayed() {
+        return false;
+    }
+    /*Quand la position de l'utilisateur change */
+    @Override
+    public void onLocationChanged(Location location) {
+
+
+        malatitude = location.getLatitude();
+        malongitude = location.getLongitude();
+        accuracy = location.getAccuracy();
+
         TextView tvAdresse = new TextView(this);
+
         try {
-            List<Address> adresses = geo.getFromLocation(latitude, longitude, 1);
+            List<Address> adresses = geo.getFromLocation(CENTRE.latitude, CENTRE.longitude, 1);
             if (adresses != null && adresses.size() == 1) {
                 Address adresse = adresses.get(0);
                 String rue = adresse.getThoroughfare();
@@ -218,6 +247,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 String ville = adresse.getLocality();
                 tvAdresse = (TextView)findViewById(R.id.adresse);
                 tvAdresse.setText(String.valueOf(rue+" " + cp + " " + ville));
+
+
             } else {
                 ((TextView) findViewById(R.id.adresse)).setText("Adresse indéterminée");
             }
@@ -225,10 +256,18 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             e.printStackTrace();
             ((TextView) findViewById(R.id.adresse)).setText("Adresse indéterminée");
         }
-    }
 
-    protected boolean isRouteDisplayed() {
-        return false;
+        //latitudeField.setText(String.valueOf("Lat: " + latitude));
+        //longitudeField.setText(String.valueOf("Long: " + longitude));
+        /*monMarker = mMap.addMarker(new MarkerOptions()
+                .title("Vous êtes ici !").position(position));
+        monMarker.setAlpha((float) 0.7);
+        monMarker.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.markerauto));*/
+
+        //mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(position, 16));
+        //mMap.animateCamera(CameraUpdateFactory.zoomTo(15), 3000, null);
+
+
     }
 
     //Méthode déclencher au clique sur un bouton
@@ -239,18 +278,20 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 break;*/
             case R.id.togglemoi:
                 if (ajouterToggle.isChecked()){
-                    quitterSpace(newplace);
-                }else{ajouterSpace();}
+                    ajouterSpace(/*monMarker*/);
+                }else{quitterSpace(newplace);}
             default:
                 break;
         }
     }
 
 
-    private void ajouterSpace() {
+
+    private void ajouterSpace(/*Marker marker*/) {
         //J'occupe la place
         //marker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
-
+        etat = "Occupé";
+        //marker.setVisible(false);
 
         //ALERTBOX
         LayoutInflater factory = LayoutInflater.from(this);
@@ -264,16 +305,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         adb.setIcon(R.drawable.addmarker);
 
         try {
-            List<Address> adresses = geo.getFromLocation(latitude, longitude, 1);
+            List<Address> adresses = geo.getFromLocation(CENTRE.latitude,CENTRE.longitude, 1);
             if (adresses != null && adresses.size() == 1) {
                 Address adresse = adresses.get(0);
-                String rue = adresse.getThoroughfare();
-                String cp = adresse.getPostalCode();
-                String ville = adresse.getLocality();
+                rue = adresse.getThoroughfare();
+                cp = adresse.getPostalCode();
+                ville = adresse.getLocality();
 
 
                 maPosition = (TextView) alertDialogView.findViewById(R.id.idmaposition);
-                maPosition.setText(String.valueOf("Ma position actuelle :\n Coordonées GPS : (" + latitude + ";" + longitude + ")\n Adresse :\n" + rue + " " + cp + " " + ville));
+                maPosition.setText(String.valueOf("Ma position actuelle :\n Coordonées GPS : (" + CENTRE.latitude + ";" + CENTRE.longitude + ")\n Adresse :\n" + rue + " " + cp + " " + ville));
 
                 /*String maPosition = "Ma position : " + rue +" "+ cp +" "+ville;
                 ((TextView) findViewById(R.id.adresse)).setText(maPosition);*/
@@ -287,22 +328,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         adb.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int which) {
-                List<Address> adresses = null;
-                try {
-                    adresses = geo.getFromLocation(latitude, longitude, 1);
-
-
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-                Address adresse = adresses.get(0);
-                String rue = adresse.getThoroughfare();
-                String cp = adresse.getPostalCode();
-                String ville = adresse.getLocality();
-                String label = "Parking "+rue;
-
-                String etat = "Occupé";
 
                 //ToggleButton
                 final ToggleButton toggle = (ToggleButton)alertDialogView.findViewById(R.id.toggleButton);
@@ -315,14 +340,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 nbrPlaces = (String) tailleParkingSpinner.getSelectedItem();
 
 
-                final LatLng position = new LatLng(latitude, longitude);
+                label = "Parking "+rue;
 
                 /*WRITE*/
                     /*FIREBASE*/
 
 
                 Firebase firebase = new Firebase("https://easyspaceproject.firebaseio.com/EasySpace");
-                Parking parking = new Parking(label, rue, cp, ville, latitude, longitude, nbrPlaces, type, etat);
+                Parking parking = new Parking(label, rue, cp, ville, CENTRE.latitude, CENTRE.longitude, nbrPlaces, type, etat);
                 firebase.child("firebase").child(label).setValue(parking);
 
                     /*GEOFIRE*/
@@ -383,46 +408,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         //FIN DIALOGBOX
 
     } //FIN AJOUTERSPACE()
-    private void quitterSpace(Marker marker, String etat) {
+    private void quitterSpace(Marker marker) {
+        //Faire disparaitre marker rouge
         marker.setVisible(false);
         etat="Libre";
+        Firebase firebase = new Firebase("https://easyspaceproject.firebaseio.com/EasySpace");
+        Parking parking = new Parking(label, rue, cp, ville, CENTRE.latitude, CENTRE.longitude, nbrPlaces, type, etat);
+        firebase.child("firebase").child(label).setValue(parking);
         //marker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
+        String message = "Place quittée";
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
-
-    /*Quand la position de l'utilisateur change */
-    @Override
-    public void onLocationChanged(Location location) {
-
-
-        latitude = location.getLatitude();
-        longitude = location.getLongitude();
-        accuracy = location.getAccuracy();
-
-        /*String myLocation = "Latitude : " + latitude + "\nLongitude : " + longitude;
-        Toast.makeText(this,myLocation,Toast.LENGTH_LONG).show();*/
-
-
-        latitudeField.setText(String.valueOf("Lat: " + latitude));
-        longitudeField.setText(String.valueOf("Long: " + longitude));
-
-
-        LatLng position = new LatLng(latitude, longitude);
-        final Marker maposition = mMap.addMarker(new MarkerOptions()
-                .title("Vous êtes ici !").snippet("(" + latitude + " ; " + longitude + ")")
-                .position(position));
-        maposition.setAlpha((float) 0.6);
-        //maposition.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE));
-        maposition.setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.markerauto));
-        maposition.setVisible(true);
-
-        /*mMap.addCircle(new CircleOptions().center(position).radius(100)
-                .strokeColor(0xff00f00).strokeWidth(3));*/
-
-        //mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(position, 16));
-        //mMap.animateCamera(CameraUpdateFactory.zoomTo(15), 3000, null);
-
-    }
-
 
     /**
      * Manipulates the map once available.
@@ -438,11 +434,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 
         mMap = googleMap;
-        LatLng latLngCenter = new LatLng(CENTRE.latitude,CENTRE.longitude);
-        this.zone = this.mMap.addCircle(new CircleOptions().center(latLngCenter).radius(RADIUS*1000));
+        this.zone = this.mMap.addCircle(new CircleOptions().center(position).radius(RADIUS*1000));
         this.zone.setFillColor(Color.argb(66, 180, 200, 255));
         this.zone.setStrokeColor(Color.argb(66, 0, 0, 255));
-        this.mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLngCenter, ZOOM));
+        this.mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(position, ZOOM));
         this.mMap.setOnCameraChangeListener(this);
 
         /*READ*/
@@ -451,7 +446,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         //setup GeoFire
         this.geoFire = new GeoFire(new Firebase(BASE));
         //query around current user location with 1km radius
-        GeoQuery geoQuery = geoFire.queryAtLocation(CENTRE,1);
+        GeoQuery geoQuery = geoFire.queryAtLocation(CENTRE,0.1);
         //add an event listener to start updating locations again
         geoQuery.addGeoQueryEventListener(this); //utilisé pour recup key
         //setup markers
@@ -459,13 +454,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         //mMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE); //Type Satellite (trop energivore)
         //mMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
+
         //Zoom sur ...
         /*mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(FRANCE, 5));
         mMap.animateCamera(CameraUpdateFactory.zoomTo(6), 4000, null); //13 normal 15 Hybrid 5 France*/
 
         //Marqueurs
-        final Marker insset = mMap.addMarker(new MarkerOptions().position(INSSET).title("INSSET").snippet("Aurevoir le centre ville !"));
-        final Marker campus = mMap.addMarker(new MarkerOptions().position(CAMPUS).title("IUT").snippet("Notre nouveau campus !"));
+        //final Marker insset = mMap.addMarker(new MarkerOptions().position(INSSET).title("INSSET").snippet("Aurevoir le centre ville !"));
+        //final Marker campus = mMap.addMarker(new MarkerOptions().position(CAMPUS).title("IUT").snippet("Notre nouveau campus !"));
 
         //mMap.setInfoWindowAdapter(new MonInfoWindow());
     }
@@ -639,20 +635,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     //final Set<String> parkingZone = new HashSet<String>();
         public void onKeyEntered(String label,GeoLocation location) {
-            /*ClusterManager<ClusterMarkerLocation> clusterManager = new ClusterManager<ClusterMarkerLocation>(this,mMap);
-            double lat;
-            double lng;
-            Random generator = new Random();
-            for( int i = 0; i < 1000; i++ ) {
-                lat = generator.nextDouble() / 3;
-                lng = generator.nextDouble() / 3;
-                if (generator.nextBoolean()) {
-                    lat = -lat;
-                }
-                if (generator.nextBoolean()) {
-                    lng = -lng;
-                }
-            }*/
             /*String key=label ;
             parkingZone.add(key);
 
@@ -711,7 +693,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 }
             });*/
 
-            /*data.limitToFirst(2).addChildEventListener(new ChildEventListener() {
+            data.limitToFirst(2).addChildEventListener(new ChildEventListener() {
                 @Override
                 public void onChildAdded(DataSnapshot dataSnapshot, String previous) {
                     Parking parking = dataSnapshot.getValue(Parking.class);
@@ -744,15 +726,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 public void onCancelled(FirebaseError firebaseError) {
 
                 }
-            });*/
+            });
 
-                //Ajoute la couleur verte
+                //Ajoute la couleur verte aux markers disponibles
                 marker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
                 //Affiche infowindow
-                marker.showInfoWindow();
+                //marker.showInfoWindow();
                 markers.put(label, marker);
 
-            //clusterManager.addItem(new  ClusterMarkerLocation(new LatLng(location.latitude,location.longitude)));
             }
 
 

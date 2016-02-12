@@ -26,13 +26,14 @@
         android:layout_height="65dp"
         android:layout_centerHorizontal="true"
         android:id="@+id/togglemoi"
-        android:textOn="Je suis garé !"
-        android:textOff="Je quitte ma place !"
-        android:checked="true" />
-
+        android:textOn="Je quitte ma place !"
+        android:textOff="Je suis garé !"
+        android:checked="false" />
+    <!--android:textOn="Je suis garé !"
+    android:textOff="Je quitte ma place !"-->
 
     <Spinner
-        android:layout_width="80dp"
+        android:layout_width="100dp"
         android:layout_height="65dp"
         android:text="@string/all"
         android:id="@+id/spinnerTypeParking"
