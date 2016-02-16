@@ -3,7 +3,7 @@
     package="com.easyspaceproject" >
 
     <uses-library
-        android:name="com.google.maps.android"
+        android:name="com.google.android.maps"
         android:required="true" />
 
     <uses-permission android:name="com.easyspaceproject.blog_gps.permission.MAPS_RECEIVE" />
@@ -48,9 +48,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
-
-        </activity>
-        <activity android:name=".IconGeneratorDemoActivity">
 
         </activity>
         <!--
